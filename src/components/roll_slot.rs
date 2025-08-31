@@ -7,7 +7,7 @@ use ratatui::{
     widgets::{Block, Padding, Paragraph, Widget},
 };
 
-use crate::model::roll::Roll;
+use crate::{model::roll::Roll, theme::Theme};
 
 pub struct RollSlot {
     pub roll: Roll,
@@ -73,7 +73,7 @@ impl Widget for BonusSlot {
 
 fn num_cat_block(n: String) -> Paragraph<'static> {
     let block = Block::bordered()
-        .white()
+        .fg(Theme::TEXT)
         .padding(Padding::horizontal(2))
         .border_set(border::ROUNDED);
     return Paragraph::new(n).block(block);
@@ -82,12 +82,12 @@ fn num_cat_block(n: String) -> Paragraph<'static> {
 fn cat_block(line_1: String, line_2: String) -> Paragraph<'static> {
     Paragraph::new(vec![Line::from(line_1), Line::from(line_2), Line::from("───────")])
         .centered()
-        .white()
+        .fg(Theme::TEXT)
 }
 
 fn score(score: Option<u32>) -> Line<'static> {
     return match score {
-        Some(s) => Line::from(s.to_string()).centered().fg(Color::Indexed(147)),
-        None => Line::from(String::from("---")).centered().fg(Color::Indexed(241)),
+        Some(s) => Line::from(s.to_string()).centered().fg(Theme::PRIMARY),
+        None => Line::from(String::from("---")).centered().fg(Theme::TEXT_DIM),
     };
 }

@@ -4,6 +4,7 @@ mod app;
 mod event;
 mod components;
 mod model;
+mod theme;
 
 use app::App;
 

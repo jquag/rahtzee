@@ -2,14 +2,16 @@ use ratatui::{
     buffer::Buffer, layout::Rect, style::Stylize, symbols::border, text::Line, widgets::{Block, Paragraph, Widget}
 };
 
+use crate::{app::DieFace, theme::Theme};
+
 pub struct Die {
-    pub face: u8,
+    pub face: DieFace,
 }
 
 impl Die {
-    pub fn new(face: u8) -> Self {
+    pub fn new(face: DieFace) -> Self {
         Self {
-            face: face.clamp(1, 6),
+            face,
         }
     }
 }
@@ -17,7 +19,7 @@ impl Die {
 impl Widget for Die {
     fn render(self, area: Rect, buf: &mut Buffer) {
         // Die faces using Unicode characters
-        let die_face = match self.face {
+        let die_face = match self.face.value {
             1 => vec!["       ", "   ●   ", "       "],
             2 => vec![" ●     ", "       ", "     ● "],
             3 => vec![" ●     ", "   ●   ", "     ● "],
@@ -27,7 +29,8 @@ impl Widget for Die {
             _ => vec!["       ", "   ?   ", "       "],
         };
 
-        let lines: Vec<Line> = die_face.iter().map(|&s| Line::from(s).white()).collect();
+        let color = if self.face.is_rolling() { Theme::TEXT_DIM } else { Theme::TEXT };
+        let lines: Vec<Line> = die_face.iter().map(|&s| Line::from(s).fg(color)).collect();
 
         let block = Block::bordered().border_set(border::ROUNDED).white();
 

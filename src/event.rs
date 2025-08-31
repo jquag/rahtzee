@@ -1,24 +1,38 @@
 use std::io;
+use std::time::Duration;
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 
 use crate::app::App;
 
 pub fn handle_events(app: &mut App) -> io::Result<()> {
-    match event::read()? {
-        // it's important to check that the event is a key press event as
-        // crossterm also emits key release and repeat events on Windows.
-        Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-            handle_key_event(app, key_event)
-        }
-        _ => {}
+    // Only use short timeout when rolling, otherwise block waiting for events
+    let timeout = if app.is_rolling() {
+        app.update_dice_animation();
+        Duration::from_millis(100)
+    } else {
+        Duration::from_secs(30) // Long timeout when not animating
     };
+    
+    if event::poll(timeout)? {
+        match event::read()? {
+            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+                handle_key_event(app, key_event)
+            }
+            _ => {}
+        }
+    }
     Ok(())
 }
 
 fn handle_key_event(app: &mut App, key_event: KeyEvent) {
     match key_event.code {
         KeyCode::Char('q') => app.exit(),
+        KeyCode::Char('r') => {
+            if !app.is_rolling() {
+                app.start_roll();
+            }
+        },
         _ => {}
     }
 }
