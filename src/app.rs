@@ -26,6 +26,7 @@ pub struct App {
     pub rolls: AllRolls,
     pub current_roll_selection: Option<Roll>,
     pub dice_faces: Vec<DieFace>,
+    pub roll_count: u8,
 }
 
 #[derive(Clone, Copy)]
@@ -56,6 +57,7 @@ impl App {
             exit: false,
             rolls: AllRolls::new(),
             current_roll_selection: None,
+            roll_count: 0,
             dice_faces: vec![
                 DieFace::new(1),
                 DieFace::new(2),
@@ -79,10 +81,13 @@ impl App {
     }
 
     pub fn start_roll(&mut self) {
-        for die in &mut self.dice_faces {
-            if !die.held {
-                let duration = rand::rng().random_range(500..=1000);
-                die.rolling_until = Some(Instant::now() + Duration::from_millis(duration));
+        if self.roll_count < 3 {
+            self.roll_count += 1;
+            for die in &mut self.dice_faces {
+                if !die.held {
+                    let duration = rand::rng().random_range(500..=1000);
+                    die.rolling_until = Some(Instant::now() + Duration::from_millis(duration));
+                }
             }
         }
     }
@@ -148,12 +153,22 @@ impl App {
         let dice = Dice::new(self.dice_faces.clone());
         dice.render(layout[0], buf);
 
+        let filled = "●";
+        let empty = "○";
         Paragraph::new(vec![
             Line::from(""),
             Line::from(""),
             Line::from(vec![
                 "Roll: ".fg(Theme::TEXT),
-                format!("{} ", 100).fg(Theme::PRIMARY).bold(),
+                if self.roll_count > 0 { filled } else { empty }
+                    .fg(Theme::PRIMARY)
+                    .bold(),
+                if self.roll_count > 1 { filled } else { empty }
+                    .fg(Theme::PRIMARY)
+                    .bold(),
+                if self.roll_count > 2 { filled } else { empty }
+                    .fg(Theme::PRIMARY)
+                    .bold(),
             ]),
             Line::from(vec![
                 "SCORE: ".fg(Theme::TEXT),
