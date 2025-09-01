@@ -33,6 +33,15 @@ fn handle_key_event(app: &mut App, key_event: KeyEvent) {
                 app.start_roll();
             }
         },
+        KeyCode::Char('1'..='5') => {
+            if !app.is_rolling() {
+                if let KeyCode::Char(c) = key_event.code {
+                    if let Some(digit) = c.to_digit(10) {
+                        app.toggle_hold((digit - 1) as usize);
+                    }
+                }
+            }
+        }
         _ => {}
     }
 }

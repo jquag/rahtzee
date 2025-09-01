@@ -80,8 +80,10 @@ impl App {
 
     pub fn start_roll(&mut self) {
         for die in &mut self.dice_faces {
-            let duration = rand::rng().random_range(500..=1000);
-            die.rolling_until = Some(Instant::now() + Duration::from_millis(duration));
+            if !die.held {
+                let duration = rand::rng().random_range(500..=1000);
+                die.rolling_until = Some(Instant::now() + Duration::from_millis(duration));
+            }
         }
     }
 
@@ -125,10 +127,7 @@ impl App {
         let sections = Layout::default() //slot section and bottom section with dice and score
             .direction(Direction::Vertical)
             .spacing(1)
-            .constraints([
-                Constraint::Length(9),
-                Constraint::Length(5),
-            ])
+            .constraints([Constraint::Length(9), Constraint::Length(5)])
             .split(inner);
 
         self.render_slots(sections[0], buf);
@@ -180,6 +179,10 @@ impl App {
         ])
         .centered();
         instructions.render(area, buf);
+    }
+
+    pub fn toggle_hold(&mut self, index: usize) {
+        self.dice_faces[index].held = !self.dice_faces[index].held;
     }
 }
 
