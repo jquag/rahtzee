@@ -2,12 +2,12 @@ use rand::Rng;
 use std::io;
 use std::time::{Duration, Instant};
 
-use ratatui::widgets::{self, Paragraph};
+use ratatui::widgets::Paragraph;
 use ratatui::{
     DefaultTerminal, Frame,
     buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Stylize},
+    style::Stylize,
     symbols::border,
     text::Line,
     widgets::{Block, Widget},
@@ -82,6 +82,9 @@ impl App {
 
     pub fn start_roll(&mut self) {
         if self.roll_count < 3 {
+            if self.roll_count == 0 {
+                self.rolls.select_next();
+            }
             self.roll_count += 1;
             for die in &mut self.dice_faces {
                 if !die.held {

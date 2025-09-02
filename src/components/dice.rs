@@ -1,6 +1,6 @@
-use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Layout, Rect}, style::{Color, Stylize}, text::Line, widgets::Widget};
+use ratatui::{buffer::Buffer, layout::{Constraint, Direction, Layout, Rect}, widgets::Widget};
 
-use crate::{app::DieFace, components::die::Die, theme::Theme};
+use crate::{app::DieFace, components::die::Die};
 
 pub struct Dice {
     pub faces: Vec<DieFace>,

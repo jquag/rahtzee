@@ -41,7 +41,11 @@ fn handle_key_event(app: &mut App, key_event: KeyEvent) {
                     }
                 }
             }
-        }
+        },
+        KeyCode::Char('l') | KeyCode::Right =>
+            app.rolls.select_next(),
+        KeyCode::Char('h') | KeyCode::Left =>
+            app.rolls.select_prev(),
         _ => {}
     }
 }
