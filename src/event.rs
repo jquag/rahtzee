@@ -13,7 +13,7 @@ pub fn handle_events(app: &mut App) -> io::Result<()> {
     } else {
         Duration::from_secs(30) // Long timeout when not animating
     };
-    
+
     if event::poll(timeout)? {
         match event::read()? {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
@@ -32,7 +32,7 @@ fn handle_key_event(app: &mut App, key_event: KeyEvent) {
             if !app.is_rolling() {
                 app.start_roll();
             }
-        },
+        }
         KeyCode::Char('1'..='5') => {
             if !app.is_rolling() {
                 if let KeyCode::Char(c) = key_event.code {
@@ -41,11 +41,22 @@ fn handle_key_event(app: &mut App, key_event: KeyEvent) {
                     }
                 }
             }
-        },
-        KeyCode::Char('l') | KeyCode::Right =>
-            app.rolls.select_next(),
-        KeyCode::Char('h') | KeyCode::Left =>
-            app.rolls.select_prev(),
+        }
+        KeyCode::Char('l') | KeyCode::Right => {
+            if app.roll_count > 0 {
+                app.rolls.select_next()
+            }
+        }
+        KeyCode::Char('h') | KeyCode::Left => {
+            if app.roll_count > 0 {
+                app.rolls.select_prev()
+            }
+        }
+        KeyCode::Enter => {
+            if !app.is_rolling() && app.roll_count > 0 {
+                app.submit_selection()
+            }
+        }
         _ => {}
     }
 }

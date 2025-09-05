@@ -79,7 +79,7 @@ impl AllRolls {
         (progress, if progress >= 63 { 35 } else { 0 })
     }
 
-    fn iter(&self) -> impl Iterator<Item = &Roll> {
+    pub fn iter(&self) -> impl Iterator<Item = &Roll> {
         [
             &self.ones_roll,
             &self.twos_roll,
@@ -117,8 +117,14 @@ impl AllRolls {
         .into_iter()
     }
 
-    pub fn selected(&mut self) -> Option<&Roll> {
-        self.iter().find(|r| r.selected)
+    pub fn selected(&mut self) -> Option<&mut Roll> {
+        self.iter_mut().find(|r| r.selected)
+    }
+
+    pub fn clear_selection(&mut self) {
+        for r in self.iter_mut() {
+            r.selected = false;
+        }
     }
 
     pub fn select_next(&mut self) {

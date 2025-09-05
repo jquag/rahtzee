@@ -5,6 +5,7 @@ mod event;
 mod components;
 mod model;
 mod theme;
+mod score_util;
 
 use app::App;
 

@@ -13,6 +13,7 @@ use ratatui::{
     widgets::{Block, Widget},
 };
 
+use crate::score_util::calc_score;
 use crate::theme::Theme;
 use crate::{components::dice::Dice, model::roll::Roll};
 use crate::{components::roll_slots::RollSlots, event, model::roll::AllRolls};
@@ -21,7 +22,6 @@ const HEIGHT: u8 = 18;
 const WIDTH: u8 = 58;
 
 pub struct App {
-    pub score: u32,
     pub exit: bool,
     pub rolls: AllRolls,
     pub current_roll_selection: Option<Roll>,
@@ -53,7 +53,6 @@ impl DieFace {
 impl App {
     pub fn new() -> App {
         App {
-            score: 0,
             exit: false,
             rolls: AllRolls::new(),
             current_roll_selection: None,
@@ -175,7 +174,7 @@ impl App {
             ]),
             Line::from(vec![
                 "SCORE: ".fg(Theme::TEXT),
-                format!("{} ", self.score).fg(Theme::PRIMARY).bold(),
+                format!("{} ", self.total_score()).fg(Theme::PRIMARY).bold(),
             ]),
         ])
         .right_aligned()
@@ -201,6 +200,25 @@ impl App {
 
     pub fn toggle_hold(&mut self, index: usize) {
         self.dice_faces[index].held = !self.dice_faces[index].held;
+    }
+
+    pub fn submit_selection(&mut self) {
+        if let Some(selection) = self.rolls.selected() {
+            selection.score = Some(calc_score(selection.roll_type, &self.dice_faces).into());
+            self.reset();
+        }
+    }
+
+    pub fn total_score(&self) -> u32 {
+        self.rolls.iter().fold(0, |tot, r| tot + r.score.unwrap_or(0) )
+    }
+
+    pub fn reset(&mut self) {
+        for f in &mut self.dice_faces {
+            f.held = false
+        }
+        self.roll_count = 0;
+        self.rolls.clear_selection();
     }
 }
 
