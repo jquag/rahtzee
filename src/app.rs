@@ -109,17 +109,10 @@ impl App {
     }
 
     fn render_main(&self, area: Rect, buf: &mut Buffer) {
-        // Calculate the constrained area (centered)
-        let width = area.width.min(WIDTH.into());
-        let height = area.height.min(HEIGHT.into());
-        let x = (area.width.saturating_sub(width)) / 2;
-        let y = (area.height.saturating_sub(height)) / 2;
-        let constrained_area = Rect::new(x, y, width, height);
-
-        let main_layout = Layout::default() //main block and one-line footer
+        let main_layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(21), Constraint::Length(1)])
-            .split(constrained_area);
+            .split(area);
 
         let title = Line::from(" YAHTZEE ".bold());
         let block = Block::bordered()
@@ -127,7 +120,7 @@ impl App {
             .fg(Theme::BORDER)
             .border_set(border::THICK);
 
-        let inner = block.inner(constrained_area);
+        let inner = block.inner(area);
         block.render(main_layout[0], buf);
         self.render_footer(main_layout[1], buf);
 
@@ -138,7 +131,38 @@ impl App {
             .split(inner);
 
         self.render_slots(sections[0], buf);
-        self.render_dice_and_score(sections[1], buf);
+
+        if self.is_game_over() {
+            self.render_game_over(sections[1], buf);
+        } else {
+            self.render_dice_and_score(sections[1], buf);
+        }
+    }
+
+    fn render_game_over(&self, area: Rect, buf: &mut Buffer) {
+        let block = Block::bordered()
+            .title(Line::from("Game Over").centered())
+            .fg(Theme::ACCENT)
+            .border_set(border::DOUBLE);
+        let inner_area = block.inner(area);
+        block.render(area, buf);
+
+        // Create vertical centering layout
+        let vertical_center = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Min(1),
+                Constraint::Length(1),
+                Constraint::Min(1),
+            ])
+            .split(inner_area);
+
+        Paragraph::new(vec![Line::from(vec![
+            "Score: ".fg(Theme::TEXT),
+            format!("{}", self.total_score()).fg(Theme::PRIMARY),
+        ])])
+        .centered()
+        .render(vertical_center[1], buf);
     }
 
     fn render_slots(&self, area: Rect, buf: &mut Buffer) {
@@ -182,20 +206,28 @@ impl App {
     }
 
     fn render_footer(&self, area: Rect, buf: &mut Buffer) {
-        let instructions = Line::from(vec![
-            "Quit ".fg(Theme::TEXT),
-            "q ".blue().bold(),
-            "| Roll ".fg(Theme::TEXT),
-            "r ".blue().bold(),
-            "| (Un)Hold ".fg(Theme::TEXT),
-            "1-6 ".blue().bold(),
-            "| Move ".fg(Theme::TEXT),
-            "arrows ".blue().bold(),
-            "| Select ".fg(Theme::TEXT),
-            "CR".blue().bold(),
-        ])
-        .centered();
-        instructions.render(area, buf);
+        let instructions = match self.is_game_over() {
+            false => Line::from(vec![
+                "Quit ".fg(Theme::TEXT),
+                "q ".blue().bold(),
+                "| Roll ".fg(Theme::TEXT),
+                "r ".blue().bold(),
+                "| (Un)Hold ".fg(Theme::TEXT),
+                "1-5 ".blue().bold(),
+                "| Move ".fg(Theme::TEXT),
+                "arrows ".blue().bold(),
+                "| Select ".fg(Theme::TEXT),
+                "CR".blue().bold(),
+            ]),
+            true => Line::from(vec![
+                "Quit ".fg(Theme::TEXT),
+                "q ".blue().bold(),
+                "| Play Again ".fg(Theme::TEXT),
+                "CR".blue().bold(),
+            ]),
+        };
+
+        instructions.centered().render(area, buf);
     }
 
     pub fn toggle_hold(&mut self, index: usize) {
@@ -210,7 +242,9 @@ impl App {
     }
 
     pub fn total_score(&self) -> u32 {
-        self.rolls.iter().fold(0, |tot, r| tot + r.score.unwrap_or(0) )
+        self.rolls
+            .iter()
+            .fold(0, |tot, r| tot + r.score.unwrap_or(0))
     }
 
     pub fn reset(&mut self) {
@@ -219,6 +253,15 @@ impl App {
         }
         self.roll_count = 0;
         self.rolls.clear_selection();
+    }
+
+    pub fn start_over(&mut self) {
+        self.reset();
+        self.rolls = AllRolls::new();
+    }
+
+    pub fn is_game_over(&self) -> bool {
+        self.rolls.iter().all(|r| r.score.is_some())
     }
 }
 
@@ -231,7 +274,12 @@ impl Widget for &App {
         if area.width < WIDTH.into() || area.height < HEIGHT.into() {
             Line::from("Terminal window too small".red().bold()).render(area, buf);
         } else {
-            self.render_main(area, buf);
+            let width = area.width.min(WIDTH.into());
+            let height = area.height.min(HEIGHT.into());
+            let x = (area.width.saturating_sub(width)) / 2;
+            let y = (area.height.saturating_sub(height)) / 2;
+            let constrained_area = Rect::new(x, y, width, height);
+            self.render_main(constrained_area, buf);
         }
     }
 }

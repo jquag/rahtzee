@@ -9,4 +9,5 @@ impl Theme {
     pub const TEXT: Color = Color::White;
     pub const TEXT_DIM: Color = Color::Indexed(241);
     pub const ACCENT: Color = Color::Indexed(213);
+    pub const BACKGROUND: Color = Color::Black;
 }

@@ -29,12 +29,12 @@ fn handle_key_event(app: &mut App, key_event: KeyEvent) {
     match key_event.code {
         KeyCode::Char('q') => app.exit(),
         KeyCode::Char('r') => {
-            if !app.is_rolling() {
+            if !app.is_rolling() && !app.is_game_over() {
                 app.start_roll();
             }
         }
         KeyCode::Char('1'..='5') => {
-            if !app.is_rolling() {
+            if !app.is_rolling() && app.roll_count != 0 && !app.is_game_over() {
                 if let KeyCode::Char(c) = key_event.code {
                     if let Some(digit) = c.to_digit(10) {
                         app.toggle_hold((digit - 1) as usize);
@@ -53,7 +53,9 @@ fn handle_key_event(app: &mut App, key_event: KeyEvent) {
             }
         }
         KeyCode::Enter => {
-            if !app.is_rolling() && app.roll_count > 0 {
+            if app.is_game_over() {
+                app.start_over();
+            } else if !app.is_rolling() && app.roll_count > 0 {
                 app.submit_selection()
             }
         }
