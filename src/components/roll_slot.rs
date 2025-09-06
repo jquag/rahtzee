@@ -8,21 +8,21 @@ use ratatui::{
 };
 
 use crate::{
-    model::roll::{Roll, RollType},
-    theme::Theme,
+    app::DieFace, model::roll::{Roll, RollType}, score_util::calc_score, theme::Theme
 };
 
-pub struct RollSlot {
+pub struct RollSlot<'a> {
     pub roll: Roll,
+    pub faces: &'a Vec<DieFace>,
 }
 
-impl RollSlot {
-    pub fn new(roll: Roll) -> RollSlot {
-        RollSlot { roll }
+impl RollSlot<'_> {
+    pub fn new(roll: Roll, faces: &Vec<DieFace>) -> RollSlot<'_> {
+        RollSlot { roll, faces }
     }
 }
 
-impl Widget for RollSlot {
+impl Widget for RollSlot<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let color = if self.roll.selected {Theme::ACCENT} else {Theme::TEXT};
         let label = match self.roll.roll_type {
@@ -47,8 +47,10 @@ impl Widget for RollSlot {
             .split(area);
 
         if self.roll.selected {
+            let possible_score = calc_score(self.roll.roll_type, self.faces);
+
             label.fg(Theme::ACCENT).render(label_area[0], buf);
-            Line::from("▲")
+            Line::from(possible_score.to_string())
                 .centered()
                 .fg(Theme::ACCENT)
                 .render(label_area[1], buf);

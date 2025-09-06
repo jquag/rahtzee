@@ -81,15 +81,16 @@ impl App {
 
     pub fn start_roll(&mut self) {
         if self.roll_count < 3 {
-            if self.roll_count == 0 {
-                self.rolls.select_next();
-            }
+            self.rolls.clear_selection();
             self.roll_count += 1;
             for die in &mut self.dice_faces {
                 if !die.held {
                     let duration = rand::rng().random_range(500..=1000);
                     die.rolling_until = Some(Instant::now() + Duration::from_millis(duration));
                 }
+            }
+            if self.roll_count == 3 {
+                self.rolls.select_next();
             }
         }
     }
@@ -166,7 +167,7 @@ impl App {
     }
 
     fn render_slots(&self, area: Rect, buf: &mut Buffer) {
-        let roll_slots = RollSlots { rolls: self.rolls };
+        let roll_slots = RollSlots { rolls: self.rolls, faces: &self.dice_faces };
         roll_slots.render(area, buf);
     }
 
