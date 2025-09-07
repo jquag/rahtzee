@@ -6,7 +6,8 @@ use crate::{app::DieFace, components::roll_slot::{BonusSlot, RollSlot}, model::r
 
 pub struct RollSlots<'a> {
     pub rolls: AllRolls,
-    pub faces: &'a Vec<DieFace>
+    pub faces: &'a Vec<DieFace>,
+    pub roll_count: u8,
 }
 
 impl Widget for RollSlots<'_> {
@@ -35,46 +36,46 @@ impl Widget for RollSlots<'_> {
             .spacing(1) 
             .split(rows[1]);
 
-        let one_slot = RollSlot::new(self.rolls.ones_roll, self.faces);
+        let one_slot = RollSlot::new(self.rolls.ones_roll, self.faces, self.roll_count);
         one_slot.render(top_row_slots[0], buf);
 
-        let two_slot = RollSlot::new(self.rolls.twos_roll, self.faces);
+        let two_slot = RollSlot::new(self.rolls.twos_roll, self.faces, self.roll_count);
         two_slot.render(top_row_slots[1], buf);
 
-        let three_slot = RollSlot::new(self.rolls.threes_roll, self.faces);
+        let three_slot = RollSlot::new(self.rolls.threes_roll, self.faces, self.roll_count);
         three_slot.render(top_row_slots[2], buf);
 
-        let four_slot = RollSlot::new(self.rolls.fours_roll, self.faces);
+        let four_slot = RollSlot::new(self.rolls.fours_roll, self.faces, self.roll_count);
         four_slot.render(top_row_slots[3], buf);
 
-        let five_slot = RollSlot::new(self.rolls.fives_roll, self.faces);
+        let five_slot = RollSlot::new(self.rolls.fives_roll, self.faces, self.roll_count);
         five_slot.render(top_row_slots[4], buf);
 
-        let six_slot = RollSlot::new(self.rolls.sixes_roll, self.faces);
+        let six_slot = RollSlot::new(self.rolls.sixes_roll, self.faces, self.roll_count);
         six_slot.render(top_row_slots[5], buf);
 
         let bonus_slot = BonusSlot::new(self.rolls.bonus_status());
         bonus_slot.render(top_row_slots[6], buf);
 
-        let three_of_a_kind_slot = RollSlot::new(self.rolls.three_of_a_kind_roll, self.faces);
+        let three_of_a_kind_slot = RollSlot::new(self.rolls.three_of_a_kind_roll, self.faces, self.roll_count);
         three_of_a_kind_slot.render(bottom_row_slots[0], buf);
 
-        let four_of_a_kind_slot = RollSlot::new(self.rolls.four_of_a_kind_roll, self.faces);
+        let four_of_a_kind_slot = RollSlot::new(self.rolls.four_of_a_kind_roll, self.faces, self.roll_count);
         four_of_a_kind_slot.render(bottom_row_slots[1], buf);
 
-        let full_house_slot = RollSlot::new(self.rolls.full_house_roll, self.faces);
+        let full_house_slot = RollSlot::new(self.rolls.full_house_roll, self.faces, self.roll_count);
         full_house_slot.render(bottom_row_slots[2], buf);
 
-        let small_straight_slot = RollSlot::new(self.rolls.small_straight_roll, self.faces);
+        let small_straight_slot = RollSlot::new(self.rolls.small_straight_roll, self.faces, self.roll_count);
         small_straight_slot.render(bottom_row_slots[3], buf);
 
-        let large_straight_slot = RollSlot::new(self.rolls.large_straight_roll, self.faces);
+        let large_straight_slot = RollSlot::new(self.rolls.large_straight_roll, self.faces, self.roll_count);
         large_straight_slot.render(bottom_row_slots[4], buf);
 
-        let chance_slot = RollSlot::new(self.rolls.chance_roll, self.faces);
+        let chance_slot = RollSlot::new(self.rolls.chance_roll, self.faces, self.roll_count);
         chance_slot.render(bottom_row_slots[5], buf);
 
-        let yahtzee_slot = RollSlot::new(self.rolls.yahtzee_roll, self.faces);
+        let yahtzee_slot = RollSlot::new(self.rolls.yahtzee_roll, self.faces, self.roll_count);
         yahtzee_slot.render(bottom_row_slots[6], buf);
     }
 }

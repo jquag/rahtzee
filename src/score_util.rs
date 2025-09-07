@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use crate::{app::DieFace, model::roll::RollType};
+use crate::{app::DieFace, model::roll::{Roll, RollType}};
 
-pub fn calc_score(roll_type: RollType, faces: &Vec<DieFace>) -> u8 {
-    match roll_type {
+pub fn calc_score(roll: Roll, faces: &Vec<DieFace>) -> u32 {
+    match roll.roll_type {
         RollType::Ones => calc_score_for_num_type(1, faces),
         RollType::Twos => calc_score_for_num_type(2, faces),
         RollType::Threes => calc_score_for_num_type(3, faces),
@@ -16,18 +16,18 @@ pub fn calc_score(roll_type: RollType, faces: &Vec<DieFace>) -> u8 {
         RollType::SmallStraight => calc_score_for_straight(4, faces),
         RollType::LargeStraight => calc_score_for_straight(5, faces),
         RollType::Chance => calc_score_for_chance(faces),
-        RollType::Yahtzee => calc_score_for_yahtzee(faces),
+        RollType::Yahtzee => calc_score_for_yahtzee(roll, faces),
     }
 }
 
-fn calc_score_for_num_type(num: u8, faces: &Vec<DieFace>) -> u8 {
+fn calc_score_for_num_type(num: u8, faces: &Vec<DieFace>) -> u32 {
     faces
         .iter()
         .filter(|f| f.value == num)
-        .fold(0, |sum, f| sum + f.value)
+        .fold(0u32, |sum, f| sum + f.value as u32)
 }
 
-fn calc_score_for_x_of_a_kind(num: u8, faces: &Vec<DieFace>) -> u8 {
+fn calc_score_for_x_of_a_kind(num: u8, faces: &Vec<DieFace>) -> u32 {
     let counts = face_counts(faces);
     let applies = counts.iter().any(|(_, count)| *count >= num);
 
@@ -37,7 +37,7 @@ fn calc_score_for_x_of_a_kind(num: u8, faces: &Vec<DieFace>) -> u8 {
     }
 }
 
-fn calc_score_for_full_house(faces: &Vec<DieFace>) -> u8 {
+fn calc_score_for_full_house(faces: &Vec<DieFace>) -> u32 {
     let counts = face_counts(faces);
     if counts.iter().any(|(_, count)| *count == 2) && counts.iter().any(|(_, count)| *count == 3) {
         25
@@ -46,7 +46,7 @@ fn calc_score_for_full_house(faces: &Vec<DieFace>) -> u8 {
     }
 }
 
-fn calc_score_for_straight(count: u8, faces: &Vec<DieFace>) -> u8 {
+fn calc_score_for_straight(count: u8, faces: &Vec<DieFace>) -> u32 {
     let mut sorted = faces.clone();
     sorted.sort_by(|a, b| a.value.cmp(&b.value));
     
@@ -75,17 +75,25 @@ fn calc_score_for_straight(count: u8, faces: &Vec<DieFace>) -> u8 {
     }
 }
 
-fn calc_score_for_chance(faces: &Vec<DieFace>) -> u8 {
+fn calc_score_for_chance(faces: &Vec<DieFace>) -> u32 {
     face_total(faces)
 }
 
-fn calc_score_for_yahtzee(faces: &Vec<DieFace>) -> u8 {
-    let counts = face_counts(faces);
-    if counts.iter().any(|(_, count)| *count == 5) {
-        50
+fn calc_score_for_yahtzee(roll: Roll, faces: &Vec<DieFace>) -> u32 {
+    if is_yahtzee(faces) {
+        let current = roll.score.unwrap_or(0);
+        if current > 0 {
+            current + 100
+        } else {
+            50
+        }
     } else {
         0
     }
+}
+
+pub fn is_yahtzee(faces: &Vec<DieFace>) -> bool {
+    face_counts(faces).iter().any(|(_, count)| *count == 5)
 }
 
 fn face_counts(faces: &Vec<DieFace>) -> HashMap<u8, u8> {
@@ -95,8 +103,8 @@ fn face_counts(faces: &Vec<DieFace>) -> HashMap<u8, u8> {
     })
 }
 
-fn face_total(faces: &Vec<DieFace>) -> u8 {
-    faces.iter().fold(0, |tot, f| tot + f.value)
+fn face_total(faces: &Vec<DieFace>) -> u32 {
+    faces.iter().fold(0u32, |tot, f| tot + f.value as u32)
 }
 
 #[cfg(test)]

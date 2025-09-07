@@ -13,9 +13,9 @@ use ratatui::{
     widgets::{Block, Widget},
 };
 
+use crate::components::dice::Dice;
 use crate::score_util::calc_score;
 use crate::theme::Theme;
-use crate::{components::dice::Dice, model::roll::Roll};
 use crate::{components::roll_slots::RollSlots, event, model::roll::AllRolls};
 
 const HEIGHT: u8 = 18;
@@ -24,7 +24,6 @@ const WIDTH: u8 = 58;
 pub struct App {
     pub exit: bool,
     pub rolls: AllRolls,
-    pub current_roll_selection: Option<Roll>,
     pub dice_faces: Vec<DieFace>,
     pub roll_count: u8,
 }
@@ -55,7 +54,6 @@ impl App {
         App {
             exit: false,
             rolls: AllRolls::new(),
-            current_roll_selection: None,
             roll_count: 0,
             dice_faces: vec![
                 DieFace::new(1),
@@ -167,7 +165,11 @@ impl App {
     }
 
     fn render_slots(&self, area: Rect, buf: &mut Buffer) {
-        let roll_slots = RollSlots { rolls: self.rolls, faces: &self.dice_faces };
+        let roll_slots = RollSlots {
+            rolls: self.rolls,
+            faces: &self.dice_faces,
+            roll_count: self.roll_count,
+        };
         roll_slots.render(area, buf);
     }
 
@@ -199,7 +201,7 @@ impl App {
             ]),
             Line::from(vec![
                 "SCORE: ".fg(Theme::TEXT),
-                format!("{} ", self.total_score()).fg(Theme::PRIMARY).bold(),
+                format!("{}", self.total_score()).fg(Theme::PRIMARY).bold(),
             ]),
         ])
         .right_aligned()
@@ -210,15 +212,15 @@ impl App {
         let instructions = match self.is_game_over() {
             false => Line::from(vec![
                 "Quit ".fg(Theme::TEXT),
-                "q ".blue().bold(),
+                "q ".fg(Theme::SECONDARY).bold(),
                 "| Roll ".fg(Theme::TEXT),
                 "r ".blue().bold(),
                 "| (Un)Hold ".fg(Theme::TEXT),
-                "1-5 ".blue().bold(),
+                "1-5 ".fg(Theme::SECONDARY).bold(),
                 "| Move ".fg(Theme::TEXT),
-                "arrows ".blue().bold(),
+                "arrows ".fg(Theme::SECONDARY).bold(),
                 "| Select ".fg(Theme::TEXT),
-                "CR".blue().bold(),
+                "CR".fg(Theme::SECONDARY).bold(),
             ]),
             true => Line::from(vec![
                 "Quit ".fg(Theme::TEXT),
@@ -236,8 +238,13 @@ impl App {
     }
 
     pub fn submit_selection(&mut self) {
-        if let Some(selection) = self.rolls.selected() {
-            selection.score = Some(calc_score(selection.roll_type, &self.dice_faces).into());
+        if self.rolls.selected().is_some() {
+            if self.rolls.yahtzee_roll.score.is_some() {
+                // if yahtzee already scored, always check for bonus yahtzee
+                self.rolls.yahtzee_roll.score = Some(calc_score(self.rolls.yahtzee_roll, &self.dice_faces));
+            }
+            let selection = self.rolls.selected().unwrap();
+            selection.score = Some(calc_score(*selection, &self.dice_faces).into());
             self.reset();
         }
     }
