@@ -88,7 +88,7 @@ fn calc_score_for_yahtzee(roll: Roll, faces: &Vec<DieFace>) -> u32 {
             50
         }
     } else {
-        0
+        roll.score.unwrap_or(0)
     }
 }
 

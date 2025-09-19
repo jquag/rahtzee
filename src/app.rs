@@ -250,9 +250,11 @@ impl App {
     }
 
     pub fn total_score(&self) -> u32 {
-        self.rolls
+        let total = self.rolls
             .iter()
-            .fold(0, |tot, r| tot + r.score.unwrap_or(0))
+            .fold(0, |tot, r| tot + r.score.unwrap_or(0));
+        let (_, bonus) = self.rolls.bonus_status();
+        return total + bonus;
     }
 
     pub fn reset(&mut self) {
